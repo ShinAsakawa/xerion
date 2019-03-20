@@ -82,12 +82,14 @@ class Xerion(object):
     def __init__(self,
                  download_dir=None,
                  basefilename='SM-nsyl',
+                 xerion_prefix = 'nets/share/',
                  datadir=None,
                  pkl_dir=None,
                  remake=False, readall=False, saveall=False,
                  forceDownload=False):
         self.module_path = os.path.dirname(__file__)
-        self.xerion_prefix = 'nets/share/'
+        self.xerion_prefix = xerion_prefix
+        self.origina_xerion_prefix = 'nets/share/'
         self.basefilename = basefilename
 
         if datadir == None:
@@ -183,10 +185,21 @@ class Xerion(object):
             dbs[dname_] = self.load_pickle(filename=self.pkl_file)
         return dbs
 
+    def save_db(self, filename, db):
+        """save a xerion pickle file."""
+        dirname = self.pkl_dir
+        if not os.path.exists(self.pkl_dir):
+            os.makedirs(self.pkl_dir)
+            if not os.path.exists(self.pkl_dir):
+                raise OSError('{} was not found'.format(self.pkl_dir))
+        dest_filename = self.pkl_dir + re.sub('.ex', '.pkl', filename)
+        print('dest_filename={}'.format(dest_filename))
+        with codecs.open(dest_filename, 'wb') as f:
+            pickle.dump(db, f)
+
 
     def save_all(self):
         """saving data files to be pickled."""
-
         dirname = self.pkl_dir
         if not os.path.exists(self.pkl_dir):
             os.makedirs(self.pkl_dir)
@@ -194,19 +207,17 @@ class Xerion(object):
                 raise OSError('{} was not found'.format(self.pkl_dir))
         for db in self.dbs:
             dest_filename = self.pkl_dir + re.sub('.ex', '.pkl', db)
-            try:
-                with codecs.open(dest_filename, 'wb') as f:
-                    pickle.dump(self.dbs[db], f)
-            except:
-                print('Error in processing {0}'.format(dest_filename))
+            with codecs.open(dest_filename, 'wb') as f:
+                pickle.dump(self.dbs[db], f)
 
 
     def load_pickle(self, filename=None):
         if filename == None:
             filename=self.datafilename
         if not os.path.isfile(filename):
-            if not os.path.isfile(self.pkl_file):
-                raise ValueError('Could not find {}'.format(filename))
+            filename = self.pkl_dir + filename
+        if not os.path.isfile(filename):
+            raise ValueError('Could not find {}'.format(filename))
         with open(filename, 'rb') as f:
             db = pickle.load(f)
         return db
@@ -215,18 +226,24 @@ class Xerion(object):
     def make_all(self):
         dbs = {}
         for dname in self.datafilenames:
-            filename = self.datadir + self.xerion_prefix + dname
-            if not os.path.isfile(filename):
-                print('{0} could not found'.format(filename))
-                downfilename, h = self.download()
-                self.extractall()
-            dbs[dname] = self.read_xerion(filename)
-        return dbs
+            #filename = self.datadir + self.xerion_prefix + dname
+            #if not os.path.isfile(filename):
+            #    print('{0} could not found'.format(filename))
+            #    downfilename, h = self.download()
+            #    self.extractall()
+            #dbs[dname.split('.')[0]] = self.read_xerion(filename)
+            dbs[dname.split('.')[0]] = self.read_xerion(dname)
+            #self.save_db(dname)
+        self.dbs = dbs
+        return self.dbs
 
 
-    def read_xerion(self, filename='SM-nsyl.ex'):
+    #def read_xerion(self, filename="SM-nsyl.ex"):
+    def read_xerion(self, filename):
         if not os.path.isfile(filename):
-            filename = self.datadir + self.basefilename + '.ex'
+            filename = self.datadir + filename
+        if not os.path.isfile(filename):
+            raise ValueError('Could not find {}'.format(filename))
         with codecs.open(filename,'r') as f:
             lines = f.readlines()
 
@@ -297,9 +314,7 @@ class Xerion(object):
         return db
         #return _inputs, _outputs, _grapheme, _phoneme, _freq, _seqs
 
-
-    @staticmethod
-    def download(forcedownload=False, destdir=None):
+    def download(self, forcedownload=False, destdir=None):
         if destdir is None:
             destdir = self.datadir 
         if not os.path.exists(destdir):
@@ -360,13 +375,13 @@ class Xerion(object):
     def usage():
         print('```python')
         print('import numpy')
-        print('import wbai_aphasia as handson')
+        print('import xerion as handson')
         print()
         print('from sklearn.neural_network import MLPRegressor')
         print()
-        print('data = handson.xerion()')
-        print('X = np.asarray(data.input, dtype=np.float32)')
-        print('y = np.asarray(data.output, dtype=np.float32)')
+        print('data = xerion.Xerion()')
+        print('X = np.asarray(data.inputs, dtype=np.float32)')
+        print('y = np.asarray(data.outputs, dtype=np.float32)')
         print()
         print('model = MLPRegressor()')
         print('model.fit(X, y)')
