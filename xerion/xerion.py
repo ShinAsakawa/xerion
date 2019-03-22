@@ -99,7 +99,7 @@ class Xerion(object):
             self.datadir = datadir
         if self.datadir[-1] != '/':
             self.datadir += '/'
-        print('self.datadir={}'.format(self.datadir))
+        #print('self.datadir={}'.format(self.datadir))
         if pkl_dir == None:
             pkl_dir = self.datadir
         self.pkl_dir = pkl_dir
@@ -107,7 +107,7 @@ class Xerion(object):
             self.pkl_dir += '/'
         self.pkl_file = pkl_dir + self.basefilename + '.pkl'
         self.datafilename = self.pkl_file
-        print('self.datafilename={}'.format(self.datafilename))
+        #print('self.datafilename={}'.format(self.datafilename))
         self.tags = ('#', 'seq', 'grapheme', 'phoneme', 'freq',
                      'tag', 'inputs', 'outputs')
         self.dbs = {}
@@ -375,13 +375,13 @@ class Xerion(object):
     def usage():
         print('```python')
         print('import numpy')
-        print('import xerion as handson')
+        print('from xerion import Xerion')
         print()
         print('from sklearn.neural_network import MLPRegressor')
         print()
-        print('data = xerion.Xerion()')
-        print('X = np.asarray(data.inputs, dtype=np.float32)')
-        print('y = np.asarray(data.outputs, dtype=np.float32)')
+        print('dataset = Xerion()')
+        print('X = dataset.inputs')
+        print('y = data.outputs')
         print()
         print('model = MLPRegressor()')
         print('model.fit(X, y)')
